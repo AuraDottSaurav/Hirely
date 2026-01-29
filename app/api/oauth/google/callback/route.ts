@@ -36,12 +36,14 @@ export async function GET(req: Request) {
     // Determine credentials
     let clientId = process.env.GOOGLE_CLIENT_ID;
     let clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    let redirectUri = process.env.GOOGLE_REDIRECT_URI;
+
+    // CRITICAL FIX: Must match the redirect_uri used in the initial request EXACTLY
+    const redirectUri = "https://hirely-psi.vercel.app/api/oauth/google/callback";
 
     const settings = await (db as any).userSettings.findUnique({ where: { userId } });
     if (settings?.googleClientId) clientId = settings.googleClientId;
     if (settings?.googleClientSecret) clientSecret = settings.googleClientSecret;
-    if (settings?.googleRedirectUri) redirectUri = settings.googleRedirectUri;
+    // We IGNORE the DB redirectUri to ensure consistency
 
     // Exchange code for tokens
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
