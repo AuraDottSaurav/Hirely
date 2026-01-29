@@ -8,11 +8,18 @@ import { revalidatePath } from "next/cache";
 
 // Fetch events to show availability (busy times)
 export async function getCalendarEvents(startTime: string, endTime: string) {
+    console.log(`[getCalendarEvents] Fetching from ${startTime} to ${endTime}`);
     const { userId } = await auth();
-    if (!userId) return { error: "Unauthorized" };
+    if (!userId) {
+        console.log("[getCalendarEvents] Unauthorized");
+        return { error: "Unauthorized" };
+    }
 
     const token = await getAccessToken(userId);
-    if (!token) return { error: "Calendar not connected" };
+    if (!token) {
+        console.log("[getCalendarEvents] No access token");
+        return { error: "Calendar not connected" };
+    }
 
     const query = new URLSearchParams({
         timeMin: startTime,

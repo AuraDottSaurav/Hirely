@@ -5,36 +5,34 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
 export async function getAccessToken(userId: string) {
-    const fs = require('fs');
-    const logFile = 'auth-debug.log';
-    fs.appendFileSync(logFile, `[getAccessToken] Fetching token for ${userId}\n`);
+    console.log(`[getAccessToken] Fetching token for ${userId}`);
     // Cast to any to avoid stale IDE type error
     const settings = await (db as any).userSettings.findUnique({ where: { userId } });
 
     if (!settings) {
-        fs.appendFileSync(logFile, `[getAccessToken] No settings found for ${userId}\n`);
+        console.log(`[getAccessToken] No settings found for ${userId}`);
         return null;
     }
     if (!settings.googleRefreshToken) {
-        fs.appendFileSync(logFile, `[getAccessToken] No refresh token found for ${userId}\n`);
+        console.log(`[getAccessToken] No refresh token found for ${userId}`);
         return null;
     }
 
     if (settings.googleTokenExpiry && Number(settings.googleTokenExpiry) > Date.now()) {
-        fs.appendFileSync(logFile, `[getAccessToken] Using cached access token\n`);
+        console.log(`[getAccessToken] Using cached access token`);
         return settings.googleAccessToken;
     }
 
     // Refresh Token
-    fs.appendFileSync(logFile, "Refreshing Google Access Token...\n");
+    console.log("Refreshing Google Access Token...");
 
     const clientId = settings.googleClientId || process.env.GOOGLE_CLIENT_ID;
     const clientSecret = settings.googleClientSecret || process.env.GOOGLE_CLIENT_SECRET;
 
-    fs.appendFileSync(logFile, `[getAccessToken] Using Client ID: ${clientId ? clientId.substring(0, 5) + '...' : 'NONE'}\n`);
+    console.log(`[getAccessToken] Using Client ID: ${clientId ? clientId.substring(0, 5) + '...' : 'NONE'}`);
 
     if (!clientId || !clientSecret) {
-        fs.appendFileSync(logFile, "Missing Google OAuth Credentials for refresh\n");
+        console.log("Missing Google OAuth Credentials for refresh");
         return null;
     }
 
@@ -51,11 +49,11 @@ export async function getAccessToken(userId: string) {
 
     const tokens = await response.json();
     if (!response.ok) {
-        fs.appendFileSync(logFile, `Failed to refresh token: ${JSON.stringify(tokens)}\n`);
+        console.error(`Failed to refresh token: ${JSON.stringify(tokens)}`);
         return null;
     }
 
-    fs.appendFileSync(logFile, "[getAccessToken] Token refreshed successfully\n");
+    console.log("[getAccessToken] Token refreshed successfully");
 
     await (db as any).userSettings.update({
         where: { userId },
