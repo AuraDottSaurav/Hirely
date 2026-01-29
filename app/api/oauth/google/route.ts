@@ -30,7 +30,7 @@ export async function GET() {
         client_id: clientId,
         access_type: "offline",
         response_type: "code",
-        prompt: "consent",
+        prompt: "consent select_account",
         scope: [
             "https://www.googleapis.com/auth/calendar.events",
             "https://www.googleapis.com/auth/userinfo.email"
