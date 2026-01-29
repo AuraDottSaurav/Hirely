@@ -37,49 +37,59 @@ export async function GET(req: Request) {
     let clientId = process.env.GOOGLE_CLIENT_ID;
     let clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
-    // CRITICAL FIX: Must match the redirect_uri used in the initial request EXACTLY
-    const redirectUri = "https://hirely-psi.vercel.app/api/oauth/google/callback";
+    try {
 
-    const settings = await (db as any).userSettings.findUnique({ where: { userId } });
-    if (settings?.googleClientId) clientId = settings.googleClientId;
-    if (settings?.googleClientSecret) clientSecret = settings.googleClientSecret;
-    // We IGNORE the DB redirectUri to ensure consistency
 
-    // Exchange code for tokens
-    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-            code,
-            client_id: clientId as string,
-            client_secret: clientSecret as string,
-            redirect_uri: redirectUri as string,
-            grant_type: "authorization_code",
-        }),
-    });
+        // CRITICAL FIX: Must match the redirect_uri used in the initial request EXACTLY
+        const redirectUri = "https://hirely-psi.vercel.app/api/oauth/google/callback";
 
-    const tokens = await tokenResponse.json();
+        const settings = await (db as any).userSettings.findUnique({ where: { userId } });
+        if (settings?.googleClientId) clientId = settings.googleClientId;
+        if (settings?.googleClientSecret) clientSecret = settings.googleClientSecret;
+        // We IGNORE the DB redirectUri to ensure consistency
 
-    if (!tokenResponse.ok) {
-        console.error("Token exchange failed", tokens);
-        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard?params=token_error`);
+        // Exchange code for tokens
+        const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                code,
+                client_id: clientId as string,
+                client_secret: clientSecret as string,
+                redirect_uri: redirectUri as string,
+                grant_type: "authorization_code",
+            }),
+        });
+
+        const tokens = await tokenResponse.json();
+
+        if (!tokenResponse.ok) {
+            console.error("Token exchange failed", tokens);
+            return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard?params=token_error`);
+        }
+
+        // Save tokens
+        await (db as any).userSettings.upsert({
+            where: { userId },
+            update: {
+                googleAccessToken: tokens.access_token,
+                googleRefreshToken: tokens.refresh_token, // Only returned on first consent or if access_type=offline & prompt=consent
+                googleTokenExpiry: BigInt(Date.now() + tokens.expires_in * 1000),
+            },
+            create: {
+                userId,
+                googleAccessToken: tokens.access_token,
+                googleRefreshToken: tokens.refresh_token,
+                googleTokenExpiry: BigInt(Date.now() + tokens.expires_in * 1000),
+            },
+        });
+
+    } catch (globalError) {
+        console.error("CRITICAL BACKEND ERROR in Callback:", globalError);
+        return NextResponse.json({
+            error: "Internal Server Error in Callback",
+            details: (globalError as Error).message,
+            stack: (globalError as Error).stack
+        }, { status: 500 });
     }
-
-    // Save tokens
-    await (db as any).userSettings.upsert({
-        where: { userId },
-        update: {
-            googleAccessToken: tokens.access_token,
-            googleRefreshToken: tokens.refresh_token, // Only returned on first consent or if access_type=offline & prompt=consent
-            googleTokenExpiry: BigInt(Date.now() + tokens.expires_in * 1000),
-        },
-        create: {
-            userId,
-            googleAccessToken: tokens.access_token,
-            googleRefreshToken: tokens.refresh_token,
-            googleTokenExpiry: BigInt(Date.now() + tokens.expires_in * 1000),
-        },
-    });
-
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard?params=calendar_connected`);
 }
