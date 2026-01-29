@@ -276,8 +276,16 @@ export function CandidatesTable({ candidates }: { candidates: Candidate[] }) {
                                     <div className="flex flex-wrap gap-3">
                                         {selectedCandidate.resumeUrl && (
                                             <Button variant="outline" size="sm" className="h-9 gap-2 shadow-sm" asChild>
-                                                <a href={selectedCandidate.resumeUrl} target="_blank" rel="noopener noreferrer">
-                                                    <FileText className="w-4 h-4 text-blue-500" />
+                                                <a
+                                                    href={
+                                                        selectedCandidate.resumeUrl?.startsWith('data:')
+                                                            ? `/api/view-document?candidateId=${selectedCandidate.id}&type=resume`
+                                                            : selectedCandidate.resumeUrl
+                                                    }
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="p-1 hover:bg-muted rounded-md inline-block"
+                                                >                                                 <FileText className="w-4 h-4 text-blue-500" />
                                                     View Resume
                                                 </a>
                                             </Button>
@@ -511,7 +519,11 @@ export function CandidatesTable({ candidates }: { candidates: Candidate[] }) {
                                                     <p className="text-xs text-muted-foreground">Click to view submission</p>
                                                 </div>
                                                 <Button variant="ghost" size="icon" className="shrink-0" asChild>
-                                                    <a href={selectedCandidate.assignmentSubmission} target="_blank" rel="noopener noreferrer">
+                                                    <a href={
+                                                        selectedCandidate.assignmentSubmission.startsWith('data:')
+                                                            ? `/api/view-document?candidateId=${selectedCandidate.id}&type=assignment`
+                                                            : selectedCandidate.assignmentSubmission
+                                                    } target="_blank" rel="noopener noreferrer">
                                                         <ExternalLink className="w-4 h-4" />
                                                     </a>
                                                 </Button>
