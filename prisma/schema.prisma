@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Job {
+  id             String      @id @default(uuid())
+  title          String
+  description    String
+  responsibilities String?
+  keywords       String?     // Comma separated
+  userId         String      // Clerk User ID
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  isOpen         Boolean     @default(true)
+  
+  assignmentDetails String?
+  formConfig     FormConfig?
+  candidates     Candidate[]
+}
+
+model FormConfig {
+  id          String  @id @default(uuid())
+  jobId       String  @unique
+  job         Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  includeName        Boolean @default(true)
+  includeEmail       Boolean @default(true)
+  includeResume      Boolean @default(false)
+  includePortfolio   Boolean @default(false)
+  includeNoticePeriod Boolean @default(false)
+  includeCurrentOrg  Boolean @default(false)
+  includeYearsExperience Boolean @default(false)
+}
+
+model Candidate {
+  id          String   @id @default(uuid())
+  jobId       String
+  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  name        String
+  email       String
+  resumeUrl   String?
+  portfolioUrl String?
+  noticePeriod String?
+  currentOrg   String?
+  yearsOfExperience String?
+  
+  // Screening & Assignment
+  screeningScore Int?
+  screeningReason String?
+  assignmentSubmission String? // URL or Text
+  
+  aiSummary   String?  // For future use
+  status      String   @default("APPLIED") // APPLIED, REJECTED, ASSIGNMENT SENT, HIRED
+  
+  createdAt   DateTime @default(now())
+  
+  // Interview Tracking
+  interviewStatus String? // INVITE_SENT, SCHEDULED, COMPLETED
+  interviewDate   DateTime?
+  meetingLink     String?
+  proposedSlots   String? // JSON array of ISO strings
+}
+
+model UserSettings {
+  id                String  @id @default(uuid())
+  userId            String  @unique // Clerk User ID
+  googleAccessToken String?
+  googleRefreshToken String?
+  googleTokenExpiry BigInt?
+  
+  updatedAt         DateTime @updatedAt
+
+  // External Platform Config
+  geminiApiKey      String?
+  
+  // Google OAuth
+  googleClientId    String?
+  googleClientSecret String?
+  googleRedirectUri String?
+  
+  // Clerk (Storage Only - Changing these requires app restart/env change usually but storing for ref)
+  clerkPublishableKey String?
+  clerkSecretKey    String?
+}
