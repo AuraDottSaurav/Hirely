@@ -13,5 +13,6 @@ export async function GET() {
         has_publishable_key: !!clerkPublishableKey,
         auth_status: userId ? "Authenticated" : "Not Authenticated",
         user_id: userId,
+        google_redirect_uri: process.env.GOOGLE_REDIRECT_URI,
     });
 }
