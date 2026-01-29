@@ -30,7 +30,7 @@ export async function GET() {
         client_id: clientId,
         access_type: "offline",
         response_type: "code",
-        prompt: "consent select_account",
+        prompt: "select_account consent",
         scope: [
             "https://www.googleapis.com/auth/calendar.events",
             "https://www.googleapis.com/auth/userinfo.email"
@@ -38,5 +38,11 @@ export async function GET() {
     };
 
     const qs = new URLSearchParams(options).toString();
-    return NextResponse.redirect(`${rootUrl}?${qs}`);
+    const finalUrl = `${rootUrl}?${qs}`;
+
+    const response = NextResponse.redirect(finalUrl);
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
+    return response;
 }
