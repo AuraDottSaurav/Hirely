@@ -436,17 +436,17 @@ export function CandidatesTable({ candidates }: { candidates: Candidate[] }) {
                                             </h4>
 
                                             {(selectedCandidate as any).interviewStatus === "INVITE_SENT" && (
-                                                <div className="bg-blue-50/40 border border-blue-200/60 rounded-lg p-4 flex items-center justify-between shadow-sm">
+                                                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 flex items-center justify-between shadow-sm">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="p-2 bg-blue-100/50 rounded-full text-blue-600">
+                                                        <div className="p-2 bg-blue-500/20 rounded-full text-blue-600 dark:text-blue-400">
                                                             <Mail className="w-4 h-4" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm font-medium text-blue-900">Waitlist: Invite Sent</p>
-                                                            <p className="text-xs text-blue-700/80">Waiting for candidate booking</p>
+                                                            <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Waitlist: Invite Sent</p>
+                                                            <p className="text-xs text-blue-600/80 dark:text-blue-400/80">Waiting for candidate booking</p>
                                                         </div>
                                                     </div>
-                                                    <Button size="sm" variant="outline" className="h-8 border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800" onClick={() => handleCheckBooking(selectedCandidate.id)}>
+                                                    <Button size="sm" variant="outline" className="h-8 border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10" onClick={() => handleCheckBooking(selectedCandidate.id)}>
                                                         <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
                                                         Refresh
                                                     </Button>

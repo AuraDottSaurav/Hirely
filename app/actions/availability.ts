@@ -70,7 +70,13 @@ export async function proposeInterviewSlots(candidateId: string, slots: Date[]) 
         console.log(`[ProposeSlots] Candidate updated: ${candidate.id}`);
 
         // 2. Send Email
-        const bookingPageUrl = `${process.env.NEXT_PUBLIC_APP_URL}/meet/${candidate.id}`;
+        // Robust Base URL: Prefer env var, then Vercel Auto-Var, then fallback hardcode
+        let baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+        if (!baseUrl) {
+            if (process.env.VERCEL_URL) baseUrl = `https://${process.env.VERCEL_URL}`;
+            else baseUrl = "https://hirely-psi.vercel.app"; // Absolute fallback
+        }
+        const bookingPageUrl = `${baseUrl}/meet/${candidate.id}`;
         const jobTitle = (candidate as any).job?.title || "Role";
 
         console.log(`[ProposeSlots] Sending email to ${candidate.email} for job ${jobTitle}`);
