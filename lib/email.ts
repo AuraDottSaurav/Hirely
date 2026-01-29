@@ -40,7 +40,8 @@ export async function sendAssignmentEmail(
         return;
     }
 
-    const assignmentLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/assignment/${candidateId}`;
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000');
+    const assignmentLink = `${baseUrl}/assignment/${candidateId}`;
 
     try {
         await resend.emails.send({
