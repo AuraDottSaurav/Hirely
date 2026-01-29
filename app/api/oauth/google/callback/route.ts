@@ -16,7 +16,18 @@ export async function GET(req: Request) {
     }
 
     // Get current user first to determine which credentials to use
-    const { userId } = await auth();
+    let userId: string | null = null;
+    try {
+        const session = await auth();
+        userId = session.userId;
+    } catch (err) {
+        console.error("Clerk auth() failed:", err);
+        return NextResponse.json({
+            error: "Clerk Authentication Failed",
+            message: (err as Error).message,
+            code: (err as any).code
+        }, { status: 500 });
+    }
 
     if (!userId) {
         return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/sign-in`);
