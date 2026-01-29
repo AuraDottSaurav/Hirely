@@ -8,10 +8,7 @@ export async function GET() {
 
     // FORCE the correct Redirect URI based on the App URL
     // This prevents the user from accidentally using the Clerk URL
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
-    // Ensure no trailing slash
-    const baseUrl = appUrl.endsWith("/") ? appUrl.slice(0, -1) : appUrl;
-    const redirectUri = `${baseUrl}/api/oauth/google/callback`;
+    const redirectUri = "https://hirely-psi.vercel.app/api/oauth/google/callback";
 
     // Only fallback to DB if absolutely necessary (likely not needed for redirect_uri)
     if (userId) {
