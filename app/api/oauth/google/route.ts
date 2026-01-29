@@ -5,15 +5,22 @@ import { db } from "@/lib/db";
 export async function GET() {
     const { userId } = await auth();
     let clientId = process.env.GOOGLE_CLIENT_ID;
-    let redirectUri = process.env.GOOGLE_REDIRECT_URI;
 
+    // FORCE the correct Redirect URI based on the App URL
+    // This prevents the user from accidentally using the Clerk URL
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+    // Ensure no trailing slash
+    const baseUrl = appUrl.endsWith("/") ? appUrl.slice(0, -1) : appUrl;
+    const redirectUri = `${baseUrl}/api/oauth/google/callback`;
+
+    // Only fallback to DB if absolutely necessary (likely not needed for redirect_uri)
     if (userId) {
         const settings = await (db as any).userSettings.findUnique({ where: { userId } });
         if (settings?.googleClientId) clientId = settings.googleClientId;
-        if (settings?.googleRedirectUri) redirectUri = settings.googleRedirectUri;
+        // We IGNORE the DB redirectUri to prevent the "Clerk" bug
     }
 
-    if (!clientId || !redirectUri) {
+    if (!clientId) {
         return NextResponse.json({ error: "Google OAuth Config Missing. Please check Settings." }, { status: 400 });
     }
 
